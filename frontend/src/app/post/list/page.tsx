@@ -1,41 +1,50 @@
-import type { components } from "@/lib/backend/apiV1/schema";
+import type { paths } from "@/lib/backend/apiV1/schema";
+import createClient from "openapi-fetch";
+import ClientPage from "./ClientPage";
 
-type PostDto = components["schemas"]["PostDto"];
+const client = createClient<paths>({
+  baseUrl: "http://localhost:8080",
+});
 
-type PageDtoPostDto = components["schemas"]["PageDtoPostDto"];
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: {
+    searchKeywordType?: "title" | "content";
+    searchKeyword?: string;
+    pageSize?: number;
+    page?: number;
+  };
+}) {
+  const {
+    searchKeyword = "",
+    searchKeywordType = "title",
+    pageSize = 10,
+    page = 1,
+  } = await searchParams;
 
-export default async function Page() {
-  const response = await fetch("http://localhost:8080/api/v1/posts");
-  const body: PageDtoPostDto = await response.json();
+  const response = await client.GET("/api/v1/posts", {
+    params: {
+      query: {
+        searchKeyword,
+        searchKeywordType,
+        pageSize,
+        page,
+      },
+    },
+  });
+
+  const responseBody = response.data!!;
 
   return (
-    <div>
-      <div>
-        <div>currentPageNumber: {body.currentPageNumber}</div>
-
-        <div>pageSize: {body.pageSize}</div>
-
-        <div>totalPages: {body.totalPages}</div>
-
-        <div>totalItems: {body.totalItems}</div>
-      </div>
-
-      <hr />
-
-      <ul>
-        {body.items.map((item: PostDto) => (
-          <li key={item.id} className="border-[2px] border-[red] my-3">
-            <div>id : {item.id}</div>
-            <div>createDate : {item.createDate}</div>
-            <div>modifyDate : {item.modifyDate}</div>
-            <div>authorId : {item.authorId}</div>
-            <div>authorName : {item.authorName}</div>
-            <div>title : {item.title}</div>
-            <div>published : {`${item.published}`}</div>
-            <div>listed : {`${item.listed}`}</div>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <ClientPage
+        searchKeyword={searchKeyword}
+        searchKeywordType={searchKeywordType}
+        page={page}
+        pageSize={pageSize}
+        responseBody={responseBody}
+      />
+    </>
   );
 }

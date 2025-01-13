@@ -36,7 +36,7 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="flex-grow border-[2px] border-[blue] p-5">
+        <main className="flex-grow border-[2px] border-[blue] p-5 bg-red-300">
           {children}
         </main>
 
